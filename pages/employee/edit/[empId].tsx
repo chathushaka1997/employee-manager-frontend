@@ -9,7 +9,7 @@ import Link from "next/link";
 import Form from "../../../components/Form";
 import { uploadImage } from "../add";
 
-const editEmplyeeData = () => {
+const EditEmplyeeData:React.FC = () => {
   const router = useRouter();
   const { empId } = router.query;
   const currentEmployee = useSelector((state: RootState) => state.employees.currentEmployee);
@@ -72,4 +72,4 @@ const editEmplyeeData = () => {
   );
 };
 
-export default editEmplyeeData;
+export default EditEmplyeeData;

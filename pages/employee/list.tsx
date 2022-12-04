@@ -38,7 +38,7 @@ export async function getServerSideProps() {
     };
   }
 }
-const list: React.FC<{
+const List: React.FC<{
   employeeListInit: Employee[];
   resError: string;
 }> = ({ employeeListInit, resError }) => {
@@ -49,6 +49,8 @@ const list: React.FC<{
   const [showToastAlert, setShowToastAlert] = useState(false);
   const [alertData, setAlertData] = useState({ message: "", type: "" });
   const [sortOptions, setSortOptions] = useState({ keyword: "", sortBy: "" });
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSorting, setIsSorting] = useState(false);
 
   const toggleView = () => {
     if (currentView == CurrentView.GRID) {
@@ -91,6 +93,7 @@ const list: React.FC<{
   };
 
   const doSearchDropDown = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setIsSorting(true);
     try {
       setSortOptions({ ...sortOptions, [e.target.name]: e.target.value });
       const options = { ...sortOptions, [e.target.name]: e.target.value };
@@ -104,10 +107,12 @@ const list: React.FC<{
     } catch (error) {
       alert("Server error");
     }
+    setIsSorting(false);
   };
-  const doSearchSearchBar = async (e:React.FormEvent<HTMLFormElement>) => {
+  const doSearchSearchBar = async (e: React.FormEvent<HTMLFormElement>) => {
+    setIsSearching(true);
     try {
-      e.preventDefault()
+      e.preventDefault();
       const employeeList = await EmployeeService.getEmployeeList(sortOptions.keyword, sortOptions.sortBy);
       if (employeeList.success) {
         setEmployeeListInner(employeeList.data);
@@ -118,6 +123,7 @@ const list: React.FC<{
     } catch (error) {
       alert("Server error");
     }
+    setIsSearching(false);
   };
 
   return (
@@ -135,14 +141,22 @@ const list: React.FC<{
                 onChange={(e) => setSortOptions({ ...sortOptions, keyword: e.target.value })}
                 name="keyword"
               />
-              <button className="btn btn-outline-primary" type="submit" id="button-addon2">
-                Search
+              <button className="btn btn-outline-primary" type="submit" id="button-addon2" disabled={isSearching}>
+                {isSearching ? "Searching..." : "Search"}
               </button>
             </div>
           </form>
 
           <div className="input-group mb-3">
-            <select className="form-select" id="inputGroupSelect01" placeholder="Sort..." onChange={doSearchDropDown} name="sortBy">
+            {isSorting && (
+              <>
+                <label className="input-group-text" htmlFor="inputGroupSelect01">
+                  Sorting...
+                </label>
+              </>
+            )}
+
+            <select className="form-select" id="inputGroupSelect01" placeholder="Sort..." onChange={doSearchDropDown} name="sortBy" disabled={isSorting}>
               <option value="none" selected>
                 No Sort
               </option>
@@ -182,4 +196,4 @@ const list: React.FC<{
   );
 };
 
-export default list;
+export default List;

@@ -30,7 +30,13 @@ export async function getServerSideProps() {
         },
       };
     }
-  } catch (error) {}
+  } catch (error) {
+    return {
+      props: {
+        resError: "Server error",
+      },
+    };
+  }
 }
 const list: React.FC<{
   employeeListInit: Employee[];
@@ -42,6 +48,7 @@ const list: React.FC<{
   const [employeeList, setEmployeeListInner] = useState<Employee[]>(employeeListInit);
   const [showToastAlert, setShowToastAlert] = useState(false);
   const [alertData, setAlertData] = useState({ message: "", type: "" });
+  const [sortOptions, setSortOptions] = useState({ keyword: "", sortBy: "" });
 
   const toggleView = () => {
     if (currentView == CurrentView.GRID) {
@@ -60,7 +67,7 @@ const list: React.FC<{
     setEmployeeListInner(employeeListFromStore);
   }, [employeeListFromStore]);
 
-  const deleteEmployee = async (empId: string, name:string) => {
+  const deleteEmployee = async (empId: string, name: string) => {
     if (confirm(`Confirm delete '${name}'`)) {
       try {
         const deleteEmployee = await EmployeeService.deleteEmployee(empId);
@@ -83,20 +90,83 @@ const list: React.FC<{
     }
   };
 
+  const doSearchDropDown = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    try {
+      setSortOptions({ ...sortOptions, [e.target.name]: e.target.value });
+      const options = { ...sortOptions, [e.target.name]: e.target.value };
+      const employeeList = await EmployeeService.getEmployeeList(options.keyword, options.sortBy);
+      if (employeeList.success) {
+        setEmployeeListInner(employeeList.data);
+        dispatch(setEmployeeList(employeeList.data));
+      } else {
+        alert(employeeList.error);
+      }
+    } catch (error) {
+      alert("Server error");
+    }
+  };
+  const doSearchSearchBar = async (e:React.FormEvent<HTMLFormElement>) => {
+    try {
+      e.preventDefault()
+      const employeeList = await EmployeeService.getEmployeeList(sortOptions.keyword, sortOptions.sortBy);
+      if (employeeList.success) {
+        setEmployeeListInner(employeeList.data);
+        dispatch(setEmployeeList(employeeList.data));
+      } else {
+        alert(employeeList.error);
+      }
+    } catch (error) {
+      alert("Server error");
+    }
+  };
+
   return (
     <div className="container">
-      <div className="d-flex flex-row-reverse py-3 ">
-        <button className="btn btn-primary rounded-circle color-light" onClick={toggleView}>
-          <Image src={currentView == CurrentView.GRID ? "/listIcon.svg" : "/gridIcon.svg"} alt="List view" width={15} height={15} className="" />
-        </button>
-        <Link href={"/employee/add"} className="btn btn-primary  rounded-pill fw-bold  me-3 px-4">
-          ADD EMPLOYEE
-        </Link>
+      <div className="row mt-5">
+        <div className="col-12 col-md-6 d-flex order-last order-md-first mt-4 mt-md-0">
+          <form onSubmit={doSearchSearchBar} className="w-100 me-3">
+            <div className="input-group mb-3 ">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search..."
+                aria-label="Search..."
+                aria-describedby="button-addon2"
+                onChange={(e) => setSortOptions({ ...sortOptions, keyword: e.target.value })}
+                name="keyword"
+              />
+              <button className="btn btn-outline-primary" type="submit" id="button-addon2">
+                Search
+              </button>
+            </div>
+          </form>
+
+          <div className="input-group mb-3">
+            <select className="form-select" id="inputGroupSelect01" placeholder="Sort..." onChange={doSearchDropDown} name="sortBy">
+              <option value="none" selected>
+                No Sort
+              </option>
+              <option value="firstName">First Name</option>
+              <option value="lastName">Last Name</option>
+              <option value="email">Email</option>
+            </select>
+          </div>
+        </div>
+        <div className="col-12 col-md-6 d-flex justify-content-end">
+          <div>
+            <Link href={"/employee/add"} className="btn btn-primary  rounded-pill fw-bold  me-3 px-4">
+              ADD EMPLOYEE
+            </Link>
+            <button className="btn btn-primary rounded-circle color-light" onClick={toggleView}>
+              <Image src={currentView == CurrentView.GRID ? "/listIcon.svg" : "/gridIcon.svg"} alt="List view" width={15} height={15} className="" />
+            </button>
+          </div>
+        </div>
       </div>
-      {employeeList.length > 0 ? (
+      {employeeList?.length > 0 ? (
         <>
           {currentView == CurrentView.GRID ? (
-            <GridView employeeList={employeeList} deleteEmployee={deleteEmployee}/>
+            <GridView employeeList={employeeList} deleteEmployee={deleteEmployee} />
           ) : (
             <ListView employeeList={employeeList} deleteEmployee={deleteEmployee} />
           )}

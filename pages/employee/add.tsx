@@ -7,6 +7,21 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import Form from "../../components/Form";
 
+export const uploadImage = async (file: File) => {
+  try {
+    if (file) {
+      const formData = new FormData();
+      formData.append("image", file);
+      const uploadImage = await EmployeeService.UploadImageToImageBB(formData);
+      return uploadImage.data.url;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const add = () => {
   const initialValues = { firstName: "", lastName: "", email: "", phoneNumber: "", gender: "" };
   const addEmployee = async (
@@ -17,11 +32,13 @@ const add = () => {
       } | null>
     >,
     formValues: formValues,
-    setFormValues:React.Dispatch<React.SetStateAction<formValues>>
+    setFormValues: React.Dispatch<React.SetStateAction<formValues>>,
+    file:File
   ) => {
     try {
       const employeeData: Partial<Employee> = { ...formValues, gender: formValues.gender as Gender };
-      const addedEmployee = await EmployeeService.addEmployee(employeeData);
+      const imageUrl = await uploadImage(file)
+      const addedEmployee = await EmployeeService.addEmployee({...employeeData,photo:imageUrl||undefined});
       if (addedEmployee.success) {
         setAlertError({ message: "Employee added", success: true });
         setFormValues(initialValues);

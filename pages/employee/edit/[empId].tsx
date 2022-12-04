@@ -7,6 +7,7 @@ import { Employee, formValues, Gender } from "../../../models/Employee";
 import { EmployeeService } from "../../../services/EmployeeService";
 import Link from "next/link";
 import Form from "../../../components/Form";
+import { uploadImage } from "../add";
 
 const editEmplyeeData = () => {
   const router = useRouter();
@@ -36,10 +37,12 @@ const editEmplyeeData = () => {
       } | null>
     >,
     formValues: formValues,
-    setFormValues: React.Dispatch<React.SetStateAction<formValues>>
+    setFormValues: React.Dispatch<React.SetStateAction<formValues>>,
+    file:File
   ) => {
     try {
-      const employeeData: Partial<Employee> = { ...formValues, gender: formValues.gender as Gender };
+      const imageUrl = await uploadImage(file);
+      const employeeData: Partial<Employee> = { ...formValues, gender: formValues.gender as Gender, photo: imageUrl || undefined };
       const addedEmployee = await EmployeeService.updateEmployee(empId as string, employeeData);
       if (addedEmployee.success) {
         setAlertError({ message: "Employee details updated", success: true });

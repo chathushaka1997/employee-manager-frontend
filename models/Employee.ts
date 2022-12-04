@@ -19,4 +19,5 @@ export interface formValues {
   email: string;
   phoneNumber: string;
   gender: Gender | string;
+  photo?:string
 }

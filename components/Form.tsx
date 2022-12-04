@@ -11,7 +11,8 @@ const Form: React.FC<{
       } | null>
     >,
     formValues: formValues,
-    setFormValues: React.Dispatch<React.SetStateAction<formValues>>
+    setFormValues: React.Dispatch<React.SetStateAction<formValues>>,
+    file:File
   ) => Promise<void>;
 }> = ({ initialValues, callback }) => {
   //const initialValues = { firstName: "", lastName: "", email: "", phoneNumber: "", gender: "" };
@@ -20,6 +21,7 @@ const Form: React.FC<{
   const [isSubmit, setIsSubmit] = useState(false);
   const [alertError, setAlertError] = useState<{ message: string; success: boolean } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [file, setFile] = useState<File | null |undefined>();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -79,7 +81,7 @@ const Form: React.FC<{
   };
   const submitForm = async () => {
     setIsLoading(true);
-    await callback(setAlertError, formValues, setFormValues);
+    await callback(setAlertError, formValues, setFormValues,file as File);
     setIsLoading(false);
   };
   return (
@@ -167,9 +169,33 @@ const Form: React.FC<{
             </select>
             <div className="form-text text-danger">{formErrors?.gender}</div>
           </div>
+          <div className="mb-4">
+            <label htmlFor="gender" className="form-label">
+              Photo
+            </label>
+
+            <input
+              type="file"
+              className={`form-control ${formErrors?.photo && "border-danger"}`}
+              id="inputGroupFile01"
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files) {
+                  const file = e.target.files[0];
+                  if (file && file.type.substring(0, 5) === "image") {
+                    setFile(file);
+                  } else {
+                    setFormErrors({ ...formErrors, photo: "Only images are allowed" });
+                  }
+                }
+              }}
+            />
+
+            <div className="form-text text-danger">{formErrors?.photo}</div>
+          </div>
           <div className="d-flex flex-row-reverse">
-            <button type="submit" className="btn px-5 btn-primary">
-              {isLoading ? "Submitting...</>" : "Submit"}
+            <button type="submit" className="btn px-5 btn-primary" disabled={isLoading}>
+              {isLoading ? "Submitting..." : "Submit"}
             </button>
           </div>
         </form>

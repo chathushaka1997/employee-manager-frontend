@@ -1,6 +1,41 @@
 import React, { useEffect, useState } from "react";
 import { formValues, Gender } from "../models/Employee";
 
+export const validate = (values: formValues) => {
+  const errors: Partial<formValues> = {};
+  const emailRegex = /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/g;
+  const phoneRegex = /\+94+[0-9]{9}$/;
+  const nameRegex = /^[A-Za-z]+$/i;
+  if (!values.firstName) {
+    errors.firstName = "First name is required!";
+  } else if (!nameRegex.test(values.firstName)) {
+    errors.firstName = "Alphabets only!";
+  } else if (values.firstName.length < 6 || values.firstName.length > 10) {
+    errors.firstName = "Min 6 character and max 10 characters";
+  }
+  if (!values.lastName) {
+    errors.lastName = "Last name is required!";
+  } else if (!nameRegex.test(values.lastName)) {
+    errors.lastName = "Alphabets only!";
+  } else if (values.lastName.length < 6 || values.lastName.length > 10) {
+    errors.lastName = "Min 6 character and max 10 characters";
+  }
+  if (!values.email) {
+    errors.email = "Email is required!";
+  } else if (!emailRegex.test(values.email)) {
+    errors.email = "Email invalid";
+  }
+  if (!values.phoneNumber) {
+    errors.phoneNumber = "Phone number is required!";
+  } else if (!phoneRegex.test(values.phoneNumber)) {
+    errors.phoneNumber = "Enter valid LK phone number. ex - +94711234567";
+  }
+  if (!values.gender) {
+    errors.gender = "Gender is required!";
+  }
+  return errors;
+};
+
 const Form: React.FC<{
   initialValues: formValues;
   callback: (
@@ -45,40 +80,7 @@ const Form: React.FC<{
     setFormValues(initialValues);
   }, [initialValues]);
 
-  const validate = (values: formValues) => {
-    const errors: Partial<formValues> = {};
-    const emailRegex = /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/g;
-    const phoneRegex = /\+94\d\d\d\d\d\d\d\d\d/g;
-    const nameRegex = /^[A-Za-z]+$/i;
-    if (!values.firstName) {
-      errors.firstName = "First name is required!";
-    } else if (!nameRegex.test(values.firstName)) {
-      errors.firstName = "Alphabets only!";
-    } else if (values.firstName.length < 6 || values.firstName.length > 10) {
-      errors.firstName = "Min 6 character and max 10 characters";
-    }
-    if (!values.lastName) {
-      errors.lastName = "Last name is required!";
-    } else if (!nameRegex.test(values.lastName)) {
-      errors.lastName = "Alphabets only!";
-    } else if (values.lastName.length < 6 || values.lastName.length > 10) {
-      errors.lastName = "Min 6 character and max 10 characters";
-    }
-    if (!values.email) {
-      errors.email = "Email is required!";
-    } else if (!emailRegex.test(values.email)) {
-      errors.email = "Email invalid";
-    }
-    if (!values.phoneNumber) {
-      errors.phoneNumber = "Phone number is required!";
-    } else if (!phoneRegex.test(values.phoneNumber)) {
-      errors.phoneNumber = "Enter valid LK phone number. ex - +94711234567";
-    }
-    if (!values.gender) {
-      errors.gender = "Gender is required!";
-    }
-    return errors;
-  };
+
   const submitForm = async () => {
     setIsLoading(true);
     await callback(setAlertError, formValues, setFormValues,file as File);
